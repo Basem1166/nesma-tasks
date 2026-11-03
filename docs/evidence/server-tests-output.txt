@@ -1,0 +1,34 @@
+ ✓ tests/tasks.test.ts > task management & workflow notifications > assigning a task notifies the assignee in-app and by email 1879ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > respects a user's email preference but still notifies in-app 1932ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > members only see their own tasks 1932ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > members can update progress/status but not other fields 2510ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > completing a task stamps completion, logs history and tells the leader 2644ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > re-assigning notifies the new assignee 2386ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > changing the due date re-arms reminder automation 2528ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > comments notify the other participants 2317ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > validates input 1624ms
+ ✓ tests/tasks.test.ts > task management & workflow notifications > only leaders can delete 2357ms
+ ✓ tests/ai.test.ts > AI chatbot > tools enforce the same access rules as the API > members only find their own tasks 1106ms
+ ✓ tests/ai.test.ts > AI chatbot > tools enforce the same access rules as the API > members cannot open someone else's task 1524ms
+ ✓ tests/ai.test.ts > AI chatbot > tools enforce the same access rules as the API > leaders see the whole team and can filter by assignee name and overdue 1036ms
+ ✓ tests/ai.test.ts > AI chatbot > tools enforce the same access rules as the API > rejects invalid tool input as an error result 1099ms
+ ✓ tests/ai.test.ts > AI chatbot > runs the tool loop against Claude and persists an append-only transcript 1758ms
+ ✓ tests/ai.test.ts > AI chatbot > runs the same tool loop on the free Gemini (OpenAI-compatible) provider 1632ms
+ ✓ tests/ai.test.ts > AI chatbot > does not persist anything when the model call fails 1105ms
+ ✓ tests/ai.test.ts > AI chatbot > users cannot read each other's conversations 1671ms
+ ✓ tests/auth.test.ts > authentication & access control > logs in with valid credentials and returns the profile 1205ms
+ ✓ tests/auth.test.ts > authentication & access control > rejects a wrong password and an unknown email with the same message 1291ms
+ ✓ tests/auth.test.ts > authentication & access control > requires a valid bearer token 824ms
+ ✓ tests/auth.test.ts > authentication & access control > rotates refresh tokens and revokes all sessions on reuse 1365ms
+ ✓ tests/auth.test.ts > authentication & access control > blocks members from leader-only areas 1018ms
+ ✓ tests/auth.test.ts > authentication & access control > lets a leader provision a member with individual credentials 2211ms
+ ✓ tests/auth.test.ts > authentication & access control > deactivating a user blocks their login 1312ms
+ ✓ tests/automation.test.ts > scheduled automation > sends one due-soon reminder per deadline 1968ms
+ ✓ tests/automation.test.ts > scheduled automation > flags overdue tasks to the assignee and the team leader once 1810ms
+ ✓ tests/automation.test.ts > scheduled automation > generates a monthly report from real data and notifies leaders 1377ms
+ ✓ tests/metrics.test.ts > report metrics > computes the period summary 2ms
+ ✓ tests/metrics.test.ts > report metrics > breaks results down per member 2ms
+ ✓ tests/metrics.test.ts > report metrics > lists delays and achievements 1ms
+ Test Files  5 passed (5)
+      Tests  31 passed (31)
+   Duration  60.20s (tests 91%, import 8%)

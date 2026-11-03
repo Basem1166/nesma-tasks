@@ -1,0 +1,220 @@
+// Nesma Team Platform - database schema
+// SQLite is used for local development and the demo. To run on PostgreSQL in
+// production change `provider` to "postgresql" and point DATABASE_URL at it
+// (see docs/DEPLOYMENT.md). Enum-like columns are stored as strings and
+// validated in the API layer (src/domain.ts) so the schema stays portable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  users     User[]
+  tasks     Task[]
+  channels  Channel[]
+  reports   Report[]
+}
+
+model User {
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  name               String
+  passwordHash       String
+  role               String         @default("MEMBER") // LEADER | MEMBER
+  title              String?
+  active             Boolean        @default(true)
+  emailNotifications Boolean        @default(true)
+  teamId             String
+  team               Team           @relation(fields: [teamId], references: [id])
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  lastLoginAt        DateTime?
+
+  assignedTasks      Task[]         @relation("TaskAssignee")
+  createdTasks       Task[]         @relation("TaskCreator")
+  taskUpdates        TaskUpdate[]
+  notifications      Notification[]
+  messages           Message[]
+  pushTokens         PushToken[]
+  refreshTokens      RefreshToken[]
+  aiConversations    AiConversation[]
+  reports            Report[]
+
+  @@index([teamId])
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  userAgent  String?
+
+  @@index([userId])
+}
+
+model Task {
+  id                String       @id @default(cuid())
+  title             String
+  description       String       @default("")
+  status            String       @default("TODO") // TODO | IN_PROGRESS | IN_REVIEW | DONE
+  priority          String       @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+  progress          Int          @default(0) // 0..100
+  dueDate           DateTime?
+  completedAt       DateTime?
+  teamId            String
+  team              Team         @relation(fields: [teamId], references: [id])
+  assigneeId        String?
+  assignee          User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdById       String
+  createdBy         User         @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  // Automation bookkeeping so reminders fire exactly once per deadline.
+  reminderSentAt    DateTime?
+  overdueNotifiedAt DateTime?
+
+  updates           TaskUpdate[]
+  notifications     Notification[]
+
+  @@index([teamId, status])
+  @@index([assigneeId])
+  @@index([dueDate])
+}
+
+model TaskUpdate {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  type      String // CREATED | ASSIGNED | STATUS | PROGRESS | COMMENT | EDITED | REMINDER | OVERDUE
+  message   String   @default("")
+  fromValue String?
+  toValue   String?
+  createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  platform  String   @default("unknown")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  html      String
+  text      String
+  status    String // SENT | LOGGED | FAILED
+  error     String?
+  eventType String
+  taskId    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Channel {
+  id        String    @id @default(cuid())
+  name      String
+  topic     String    @default("")
+  teamId    String
+  team      Team      @relation(fields: [teamId], references: [id])
+  createdAt DateTime  @default(now())
+  messages  Message[]
+
+  @@unique([teamId, name])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([channelId, createdAt])
+}
+
+model Report {
+  id            String   @id @default(cuid())
+  teamId        String
+  team          Team     @relation(fields: [teamId], references: [id])
+  periodStart   DateTime
+  periodEnd     DateTime
+  metrics       String // JSON snapshot of the computed metrics
+  narrative     String // Markdown narrative written by Claude (or rule-based fallback)
+  aiGenerated   Boolean  @default(false)
+  model         String?
+  generatedById String?
+  generatedBy   User?    @relation(fields: [generatedById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([teamId, periodStart])
+}
+
+model AiConversation {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String      @default("New conversation")
+  provider  String      @default("anthropic") // anthropic | gemini | openai: transcript format
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+// Each row is one turn exactly as sent/received in the provider's native format
+// (Claude content blocks incl. tool_use / tool_result / thinking, or OpenAI-style
+// chat messages incl. tool_calls). The history is append-only so it can be
+// replayed to the model unchanged.
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  seq            Int
+  role           String // user | assistant | tool
+  content        String // JSON: Claude content blocks, or an OpenAI-format chat message
+  displayText    String? // plain text shown in the UI (null for tool plumbing turns)
+  createdAt      DateTime       @default(now())
+
+  @@unique([conversationId, seq])
+}

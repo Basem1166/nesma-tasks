@@ -1,0 +1,44 @@
+# Render Blueprint: one free web service running the API, realtime gateway,
+# scheduler and the built web app. See docs/DEPLOYMENT.md ("Free demo on Render").
+#
+# Demo trade-offs of the free plan: the service sleeps after ~15 min without
+# traffic (first request then takes ~1 min) and its disk is wiped on every
+# restart, so the SQLite demo database is re-seeded automatically on start.
+services:
+  - type: web
+    name: nesma-tasks
+    runtime: node
+    plan: free
+    buildCommand: npm ci --prefix server --include=dev && npm ci --prefix web --include=dev && npm run build
+    startCommand: cd server && npx prisma migrate deploy && npm run db:seed-if-empty && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./demo.db
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      # Show the demo logins on the sign-in page (built into the web bundle).
+      - key: VITE_SHOW_DEMO_ACCOUNTS
+        value: "true"
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_MODEL
+        value: gemini-3.5-flash-lite
+      # Asked for when you create the Blueprint: paste your free Gemini key.
+      - key: AI_API_KEY
+        sync: false
+      # Optional real email (leave empty to keep the in-app Email outbox only).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false

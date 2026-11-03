@@ -1,0 +1,44 @@
+Nesma end-to-end workflow demo → http://localhost:4000
+
+1. Authentication & roles
+   PASS  leader signed in as Mona Hassan; member signed in as Sara Adel
+   PASS  wrong password rejected (401)
+   PASS  member blocked from leader-only reports (403)
+   PASS  both clients connected to the realtime gateway
+
+2. Leader creates and assigns a task to the member
+   PASS  task created (cmvzvqofr001hwvv8a3of097b)
+   PASS  member received realtime notification: "Mona Hassan assigned you "E2E demo task 23:18:11""
+   PASS  member's open screens told to refresh (task:changed)
+   PASS  assignment email to sara@nesma.dev recorded [LOGGED] "[Nesma] New task: E2E demo task 23:18:11"
+
+3. Member works the task (as from the mobile app)
+   PASS  member cannot edit title (403)
+   PASS  progress 60% → status auto-moved to In progress
+   PASS  leader notified live: TASK_STATUS, TASK_COMMENT
+
+4. Automation: deadline reminder (task is due in 6 h)
+   PASS  reminder delivered (run result {"reminders":1,"overdue":0})
+   PASS  second run is idempotent ({"reminders":0,"overdue":0}); exactly 1 reminder email
+
+5. Automation: deadline moved into the past → overdue alert to member + leader
+   PASS  leader got overdue alert
+   PASS  member got overdue alert
+
+6. Member completes the task
+   PASS  status Done → progress 100%, completion time stamped
+   PASS  leader notified: task completed
+   history: CREATED → ASSIGNED → STATUS → PROGRESS → COMMENT → REMINDER → EDITED → OVERDUE → STATUS → PROGRESS
+
+7. Team chat (realtime)
+   PASS  leader received the chat message instantly
+
+8. AI reporting & assistant
+   AI configured: false (claude-opus-5-5); email mode: log
+   PASS  live metrics this month: completion 50%, on-time 50%, overdue 14
+   PASS  assistant correctly reports AI not configured (503) - set ANTHROPIC_API_KEY to enable
+
+Cleanup: deleting the demo task
+   PASS  demo task deleted
+
+ALL CHECKS PASSED
