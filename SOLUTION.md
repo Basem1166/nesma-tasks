@@ -79,6 +79,8 @@ Demo accounts (password `Nesma@2026`):
 | `leader@nesma.dev` | Team leader (Mona Hassan) |
 | `sara@nesma.dev`, `omar@nesma.dev`, `youssef@nesma.dev`, `laila@nesma.dev` | Team members |
 
+**Share a public demo link** (no hosting account or credit card): `npm run demo:public` prints an `https://….trycloudflare.com` link that serves the whole app from your PC. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 The seed has about 60 tasks spread over the last three months, with realistic histories: on-time and late completions, overdue work, comments and chat. The reports and the assistant therefore have real data to analyse.
 
 ## Documentation

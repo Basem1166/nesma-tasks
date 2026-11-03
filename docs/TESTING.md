@@ -7,7 +7,7 @@ There are three layers of evidence. All of them can be re-run from a clean check
 | Automated test suite (API, RBAC, workflow, automation, metrics, AI tool loop) | `npm test` | **31 / 31 passed**: [evidence/server-tests-output.txt](evidence/server-tests-output.txt) |
 | Live end-to-end workflow against a running server with two realtime clients | `npm --prefix server run e2e:demo` | **All checks passed**: [evidence/e2e-demo-output.txt](evidence/e2e-demo-output.txt) |
 | Static checks | `npm run typecheck`, `cd mobile && npx expo lint`, `npx expo-doctor` | Server and mobile `tsc` clean. Web production build OK. Mobile lint: 0 findings. expo-doctor: 20/20 checks passed. Android bundle exported successfully. |
-| Live AI provider | `npm --prefix server run ai:smoke` | Needs `AI_API_KEY` (free Gemini). **Not run in the recorded session** (no key on the build machine). The AI loop is covered by the automated tests with a stubbed client, and the e2e demo confirms the server reports the missing key correctly (503). |
+| Live AI provider | `npm --prefix server run ai:smoke` | Needs `AI_API_KEY` (free Gemini). **Run 2026-11-03 with `gemini-3.5-flash-lite`:** the leader got a table of the 12 real overdue tasks with owners and priorities (tools: `search_tasks`, `get_team_overview`); the member got only their own 11 tasks (`search_tasks`). The e2e demo also passed the AI step through the public tunnel. |
 
 ## 1. Automated tests (`server/tests`)
 

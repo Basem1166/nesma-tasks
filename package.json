@@ -10,6 +10,7 @@
     "test": "npm --prefix server test",
     "typecheck": "npm --prefix server run typecheck && npm --prefix web run build && cd mobile && npx tsc --noEmit",
     "build": "npm --prefix web run build && npm --prefix server run build",
-    "start": "npm --prefix server start"
+    "start": "npm --prefix server start",
+    "demo:public": "node scripts/demo-public.mjs"
   }
 }

@@ -1,8 +1,24 @@
 # Deployment
 
-## Free demo on Render (recommended for the assessment)
+## Public demo link with no account or credit card (recommended)
 
-The repository includes a [`render.yaml`](../render.yaml) Blueprint. No credit card is needed.
+```bash
+npm run demo:public
+```
+
+This builds the app, starts it on your PC in production mode, and opens a free **Cloudflare quick tunnel**. You get a public link such as `https://some-random-words.trycloudflare.com` that works from any browser or phone, websockets and live updates included. On Windows the script downloads Cloudflare's official `cloudflared` the first time it runs.
+
+- **Web:** open the link. The demo logins are shown on the sign-in page.
+- **Mobile:** on the app's login screen tap **Server: … · change** and paste the link.
+- The link works **while that terminal stays open and the PC is awake**. Every run creates a new random link.
+- Data is the normal local database, so it persists between runs. Reset it with `npm --prefix server run db:seed`.
+- Uses port 4100, so it can run alongside `npm run dev:server`. Use `npm run demo:public -- --no-build` to skip rebuilding.
+
+Verified: the full end-to-end workflow script (`BASE_URL=<link> npm --prefix server run e2e:demo`) passes through the public link, including realtime events, the AI assistant, and browser sign-in with the secure cookie.
+
+## Hosted demo on Render (may ask for a card)
+
+The repository also includes a [`render.yaml`](../render.yaml) Blueprint. Render may require a credit card for verification, even on the free plan.
 
 1. Sign up at https://render.com using **Sign in with GitHub**.
 2. Go to **New → Blueprint**, pick this repository and click **Connect**.
