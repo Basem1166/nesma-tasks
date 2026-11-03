@@ -14,6 +14,16 @@ This builds the app, starts it on your PC in production mode, and opens a free *
 - Data is the normal local database, so it persists between runs. Reset it with `npm --prefix server run db:seed`.
 - Uses port 4100, so it can run alongside `npm run dev:server`. Use `npm run demo:public -- --no-build` to skip rebuilding.
 
+### Permanent link to submit
+
+The tunnel link changes on every run, so submit this instead:
+
+**https://basem1166.github.io/nesma-demo/**
+
+It's a tiny GitHub Pages page in the public repo [`Basem1166/nesma-demo`](https://github.com/Basem1166/nesma-demo). It contains only that page, no app code. `npm run demo:public` updates its `link.json` through the GitHub CLI each time it starts, so the permanent link forwards to the current tunnel within about a minute. Pressing **Ctrl+C** marks the demo offline, and visitors then see "The live demo is offline right now" instead of a dead link. If the window is closed instead of using Ctrl+C, the page keeps the old address until the next run.
+
+For a different account or repo, create a public repo with the same `index.html` and `link.json`, enable Pages on `main`, and set `DEMO_LINK_REPO=<owner>/<repo>`.
+
 Verified: the full end-to-end workflow script (`BASE_URL=<link> npm --prefix server run e2e:demo`) passes through the public link, including realtime events, the AI assistant, and browser sign-in with the secure cookie.
 
 ## Hosted demo on Render (may ask for a card)

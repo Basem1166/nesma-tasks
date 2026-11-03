@@ -11,7 +11,7 @@
 // The link works while this window stays open and the PC is awake. A new
 // random link is created each time. Data is the normal local database
 // (server/prisma/dev.db), so it persists between runs.
-import { execSync, spawn } from "node:child_process";
+import { execFileSync, execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import https from "node:https";
 import net from "node:net";
@@ -55,6 +55,36 @@ async function cloudflaredPath() {
     await download("https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe", exe);
   }
   return exe;
+}
+
+/**
+ * Permanent link: a GitHub Pages page (repo DEMO_LINK_REPO, default
+ * <your-github-user>/nesma-demo) that forwards visitors to the current tunnel.
+ * Its link.json is updated through the GitHub CLI. Returns the page URL, or
+ * null when gh or the repo isn't available (the demo still works).
+ */
+let linkRepo;
+function setPermanentLink(url) {
+  try {
+    linkRepo ??=
+      process.env.DEMO_LINK_REPO ??
+      `${execFileSync("gh", ["api", "user", "--jq", ".login"], { encoding: "utf8" }).trim()}/nesma-demo`;
+    const sha = execFileSync("gh", ["api", `repos/${linkRepo}/contents/link.json`, "--jq", ".sha"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    const content = Buffer.from(JSON.stringify({ url, updatedAt: new Date().toISOString() }, null, 2) + "\n").toString("base64");
+    execFileSync(
+      "gh",
+      ["api", "-X", "PUT", `repos/${linkRepo}/contents/link.json`, "-f", `message=Demo ${url ? "online" : "offline"}`, "-f", `content=${content}`, "-f", `sha=${sha}`, "--silent"],
+      { stdio: "ignore" },
+    );
+    const [owner, name] = linkRepo.split("/");
+    return `https://${owner.toLowerCase()}.github.io/${name}/`;
+  } catch {
+    if (url) console.log("(Permanent link not updated: needs the GitHub CLI signed in and a <user>/nesma-demo repo - see docs/DEPLOYMENT.md)");
+    return null;
+  }
 }
 
 function run(cmd, cwd = root) {
@@ -111,9 +141,11 @@ const server = spawn(process.execPath, ["dist/index.js"], {
   },
 });
 
+const permanent = setPermanentLink(publicUrl);
+
 console.log(`
 ==============================================================
-  PUBLIC DEMO LINK:  ${publicUrl}
+  PUBLIC DEMO LINK:  ${publicUrl}${permanent ? `\n  PERMANENT LINK:    ${permanent}   (now points here, ~1 min)` : ""}
 
   Web:     open the link in any browser
   Mobile:  login screen -> "Server: ... change" -> paste the link
@@ -125,15 +157,19 @@ console.log(`
 ==============================================================
 `);
 
-const stop = () => {
+let stopping = false;
+const stop = (code = 0) => {
+  if (stopping) return;
+  stopping = true;
+  // Tell visitors of the permanent link that the demo is offline.
+  if (permanent) setPermanentLink(null);
   server.kill();
   tunnel.kill();
-  process.exit(0);
+  process.exit(code);
 };
-process.on("SIGINT", stop);
-process.on("SIGTERM", stop);
+process.on("SIGINT", () => stop(0));
+process.on("SIGTERM", () => stop(0));
 server.on("exit", (code) => {
   console.error(`Server stopped (${code}).`);
-  tunnel.kill();
-  process.exit(code ?? 1);
+  stop(code ?? 1);
 });
