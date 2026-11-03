@@ -61,21 +61,25 @@ function run(cmd, cwd = root) {
   execSync(cmd, { cwd, stdio: "inherit", shell: true });
 }
 
+// Check the port first so a clash is reported before the (slower) build.
+const portFree = await new Promise((resolve) => {
+  const probe = net.createServer().once("error", () => resolve(false)).once("listening", () => probe.close(() => resolve(true)));
+  probe.listen(Number(PORT));
+});
+if (!portFree) {
+  console.error(
+    `Port ${PORT} is already in use - another demo is probably still running (close its window or press Ctrl+C there).\n` +
+      `Or start this one on another port:  set DEMO_PORT=4200 && npm run demo:public`,
+  );
+  process.exit(1);
+}
+
 if (!process.argv.includes("--no-build")) {
   console.log("Building web app and server...");
   process.env.VITE_SHOW_DEMO_ACCOUNTS = "true";
   run("npm run build");
 }
 run("npx prisma migrate deploy", path.join(root, "server"));
-
-const portFree = await new Promise((resolve) => {
-  const probe = net.createServer().once("error", () => resolve(false)).once("listening", () => probe.close(() => resolve(true)));
-  probe.listen(Number(PORT));
-});
-if (!portFree) {
-  console.error(`Port ${PORT} is already in use (is a demo already running?). Stop it or run with DEMO_PORT=4200.`);
-  process.exit(1);
-}
 
 const tunnelBin = await cloudflaredPath();
 console.log("Opening Cloudflare tunnel...");
