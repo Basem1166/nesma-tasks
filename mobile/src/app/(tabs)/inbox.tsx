@@ -32,7 +32,7 @@ export default function Inbox() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.brand} />}
       ListHeaderComponent={
         <View style={{ padding: 12, gap: 8 }}>
-          {pushStatus && pushStatus !== 'enabled' && <T variant="muted">Push notifications unavailable: {pushStatus}</T>}
+          {pushStatus && pushStatus !== 'enabled' && <T variant="muted">{pushStatus}</T>}
           {data.unread > 0 && (
             <Button title={`Mark all ${data.unread} as read`} variant="secondary" onPress={async () => { await api('/notifications/read-all', { method: 'POST' }); void reload() }} />
           )}
